@@ -22,9 +22,8 @@ MIN_CHARS = 1
 MAX_CHARS = 200
 
 
-def main():
-    text = ENTRY
-    # Gate validation, mirroring the sealed scorer.
+def validate(text):
+    """Gate validation, mirroring the sealed scorer."""
     encoded = text.encode("utf-8")  # raises if not valid UTF-8 text
     decoded = encoded.decode("utf-8")
     assert decoded == text
@@ -33,10 +32,20 @@ def main():
         f"entry is {len(text)} chars, gate is {MIN_CHARS}-{MAX_CHARS}"
     )
     assert text.strip(), "entry must not be only whitespace"
+
+
+def main():
+    validate(ENTRY)
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
-    print(f"Wrote /output/entry.txt ({len(text)} chars)")
+        f.write(ENTRY)
+    # Post-write verification: what the scorer will read must be exactly
+    # what was validated, so a partial or recoded write cannot slip through.
+    with open("/output/entry.txt", encoding="utf-8") as f:
+        written = f.read()
+    assert written == ENTRY, "written entry differs from the validated text"
+    validate(written)
+    print(f"Wrote /output/entry.txt ({len(ENTRY)} chars, verified)")
 
 
 if __name__ == "__main__":
